@@ -27,6 +27,7 @@ class CollectTrainingData(object):
 
     def collect_image(self):
 
+
         frameNo = 1
         flag = True
         pygame.display.set_mode((1, 1))
@@ -42,7 +43,7 @@ class CollectTrainingData(object):
             roi = img[120:240, :]
             # cv2.imshow('ROT',roi)
             # save image
-            #cv2.imwrite('training_images/frame{:05}.jpg'.format(frameNo),img)
+            cv2.imwrite('training_images/frame{:05}.jpg'.format(frameNo),img)
 
             # roi image into one row 120X320=38400
             temp_array = roi.reshape(1, 38400).astype(np.float32)
