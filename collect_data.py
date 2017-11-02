@@ -5,21 +5,26 @@ import time
 import pygame
 from pygame.locals import *
 import os
+import serial
+import json
 
 # collect training data
 
 class CollectTrainingData(object):
     def __init__(self):
+
         self.url = 'http://192.168.1.4:8080/shot.jpg'
 
         # create serial connection with board
+        self.ser = serial.Serial('COM5', 250000, timeout=1)
+        self.send_inst = True
 
         # create labels
         # [Left Right Forward Back]
         self.labels = np.zeros((4, 4), 'float')
         for i in range(4):
             self.labels[i, i] = 1
-        # label[0] for left,1 for right,2 for forward,3 for reverse
+        # label[0] for F,1 for right,2 for reverse,3 for left
         self.temp_label = np.zeros((1, 4), 'float')
 
         pygame.init()
@@ -35,6 +40,7 @@ class CollectTrainingData(object):
 
         pygame.display.set_mode((1, 1))
         flag = True
+        print("Starting training...")
         while flag:
 
             imgResp = urllib.request.urlopen(self.url)
@@ -59,7 +65,6 @@ class CollectTrainingData(object):
 
             # roi image into one row 120X320=38400
             temp_array = roi.reshape(1, 38400).astype(np.float32)
-            print(temp_array)
             frameNo = frameNo + 1
             totalFrame += 1
 
@@ -68,59 +73,59 @@ class CollectTrainingData(object):
                 if event.type == KEYDOWN:
                     key_input = pygame.key.get_pressed()
                     if key_input[pygame.K_UP] and key_input[pygame.K_RIGHT]:
-                        print("Forward Right")
+                        print("Right")
                         image_array = np.vstack((image_array,temp_array))
                         label_array = np.vstack((label_array,self.labels[1]))
                         savedFrame += 1
-                        #signal to ardunio
+                        self.ser.write(b'right\n')
 
                     elif key_input[pygame.K_UP] and key_input[pygame.K_LEFT]:
-                        print("Forward Left")
+                        print("Left")
                         image_array = np.vstack((image_array,temp_array))
-                        label_array = np.vstack((label_array,self.labels[0]))
+                        label_array = np.vstack((label_array,self.labels[3]))
                         savedFrame += 1
-                        #signal to ardunio
+                        self.ser.write(b'left\n')
 
                     elif key_input[pygame.K_DOWN] and key_input[pygame.K_RIGHT]:
-                        print("Reverse Right")
+                        print("Not valid")
 
                     elif key_input[pygame.K_DOWN] and key_input[pygame.K_LEFT]:
-                        print("Reverse Left")
+                        print("Not valid")
 
                     elif key_input[pygame.K_UP]:
                         print("Forward")
                         image_array = np.vstack((image_array,temp_array))
-                        label_array = np.vstack((label_array,self.labels[2]))
+                        label_array = np.vstack((label_array,self.labels[0]))
                         savedFrame += 1
-                        #signal to ardunio
+                        self.ser.write(b'forward\n')
 
                     elif key_input[pygame.K_DOWN]:
-                        print("Down")
+                        print("Reverse")
                         image_array = np.vstack((image_array,temp_array))
-                        label_array = np.vstack((label_array,self.labels[3]))
+                        label_array = np.vstack((label_array,self.labels[2]))
                         savedFrame += 1
-                        #signal to ardunio
+                        self.ser.write(b'reverse\n')
 
                     elif key_input[pygame.K_LEFT]:
                         print("Left")
                         image_array = np.vstack((image_array,temp_array))
-                        label_array = np.vstack((label_array,self.labels[0]))
+                        label_array = np.vstack((label_array,self.labels[3]))
                         savedFrame += 1
-                        #signal to ardunio
+                        self.ser.write(b'left\n')
 
                     elif key_input[pygame.K_RIGHT]:
                         print("Right")
                         image_array = np.vstack((image_array,temp_array))
                         label_array = np.vstack((label_array,self.labels[1]))
                         savedFrame += 1
-                        #signal to ardunio
+                        self.ser.write(b'right\n')
 
                     elif key_input[pygame.K_x] or key_input[pygame.K_q]:
-                        print("exit")
+                        print("Exiting")
                         flag = False
                         break
                 elif event.type == pygame.KEYUP:
-                    #print("ssd")
+                    self.ser.write(b'stop\n')
         #saving labels
         train_images = image_array[1:,:] #for removing first entry
         train_labels = label_array[1:,:]
