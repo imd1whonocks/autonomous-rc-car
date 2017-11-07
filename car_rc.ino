@@ -1,5 +1,7 @@
-int left_sideD2 = 11;//D2 on RF board
-int right_sideD0 = 9; //D0 on RF board
+int left_sideD0 = 8;        //D0 on RF board
+int rev_left_sideD1 = 9;    //D1 on RF board
+int right_sideD2 = 10;      //D2 on RF board
+int rev_right_sideD3 = 11;  //D3 on RF board
 
 // duration for output
 int time = 1000;
@@ -9,8 +11,10 @@ String command = "";
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(250000);
-  pinMode(left_sideD2,OUTPUT);
-  pinMode(right_sideD0,OUTPUT);
+  pinMode(left_sideD0,OUTPUT);
+  pinMode(rev_left_sideD1,OUTPUT);
+  pinMode(right_sideD2,OUTPUT);
+  pinMode(rev_right_sideD3,OUTPUT)
   
 }
 
@@ -38,26 +42,30 @@ void loop() {
 }
 
 void forward(int time){
-  digitalWrite(left_sideD2, HIGH);
-  digitalWrite(right_sideD0, HIGH);
+  digitalWrite(left_sideD0, HIGH);
+  digitalWrite(right_sideD2, HIGH);
   delay(time);
 }
 
 void right(int time){
-  digitalWrite(left_sideD2, HIGH);
+  digitalWrite(left_sideD0, HIGH);
   delay(time);
 }
 
 void left(int time){
-  digitalWrite(right_sideD0, HIGH);
+  digitalWrite(right_sideD2, HIGH);
   delay(time);
 }
+
 void reset(){
-  digitalWrite(left_sideD2, LOW);
-  digitalWrite(right_sideD0, LOW);
+  digitalWrite(left_sideD0, LOW);
+  digitalWrite(rev_left_sideD1, LOW);
+  digitalWrite(rev_right_sideD3, LOW);
+  digitalWrite(right_sideD2, LOW);
 }
+
 void brake(int time){
-  digitalWrite(left_sideD2, LOW);
-  digitalWrite(right_sideD0, LOW);
+  digitalWrite(rev_left_sideD1, HIGH);
+  digitalWrite(rev_right_sideD3, HIGH);
   delay(time);  
 }
